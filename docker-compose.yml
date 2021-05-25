@@ -1,0 +1,71 @@
+version: '3.7'
+services:
+  metabase-new:
+    image: metabase/metabase:v0.39.2
+    container_name: metabase-new
+    hostname: metabase-new
+    volumes:
+    - /dev/urandom:/dev/random:ro
+    ports:
+      - 3000:3000
+    environment:
+      MB_JETTY_PORT: 3000
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: $MB_DB_DBNAME
+      MB_DB_PORT: 5432
+      MB_DB_USER: $MB_DB_USER
+      MB_DB_PASS: $MB_DB_PASS
+      MB_DB_HOST: postgres-metabase
+    networks:
+      - metabase
+    depends_on:
+      - postgres-metabase
+  metabase-old:
+    image: metabase/metabase:v0.35.3
+    container_name: metabase-old
+    hostname: metabase-old
+    volumes:
+    - /dev/urandom:/dev/random:ro
+    ports:
+      - 3001:3001
+    environment:
+      MB_JETTY_PORT: 3001
+      MB_DB_TYPE: mysql
+      MB_DB_DBNAME: $MB_DB_DBNAME
+      MB_DB_PORT: 3306
+      MB_DB_USER: $MB_DB_USER
+      MB_DB_PASS: $MB_DB_PASS
+      MB_DB_HOST: mysql-metabase
+    networks:
+      - metabase
+    depends_on:
+      - mysql-metabase
+  postgres-metabase:
+    image: postgres:latest
+    container_name: postgres-metabase
+    hostname: postgres-metabase
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: $MB_DB_USER
+      POSTGRES_DB: $MB_DB_DBNAME
+      POSTGRES_PASSWORD: $MB_DB_PASS
+    networks:
+      - metabase
+  mysql-metabase:
+    image: mysql:latest
+    container_name: mysql-metabase
+    hostname: mysql-metabase
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_USER: $MB_DB_USER
+      MYSQL_DATABASE: $MB_DB_DBNAME
+      MYSQL_PASSWORD: $MB_DB_PASS
+      MYSQL_ROOT_PASSWORD: $MB_DB_PASS
+    command: ['--default-authentication-plugin=mysql_native_password']
+    networks:
+      - metabase
+networks:
+  metabase:
+    driver: bridge
